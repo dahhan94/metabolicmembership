@@ -10,18 +10,22 @@
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head><body>
-<div class="wrap">
-
-  <div class="mast">
+<div class="topbar">
+  <div class="topbar-inner">
     {% include '_logo.html' %}
-    <span class="mast-divider"></span>
-    <h1>Coverage history</h1>
-    <span class="sub">Metabolic · Jumeirah &amp; Al Barsha</span>
+    <span class="topbar-label">Coverage History &middot; Staff Tool</span>
     <span class="spacer"></span>
     <span class="who">Signed in as {{ user }} &middot; <a href="{{ url_for('logout') }}">Sign out</a></span>
     <label class="fee">Membership fee AED
       <input id="fee" type="number" value="1999" min="0" step="100" aria-label="Annual membership fee in AED">
     </label>
+  </div>
+</div>
+<div class="wrap">
+
+  <div class="mast">
+    <h1>Coverage history</h1>
+    <span class="sub">Metabolic · Jumeirah &amp; Al Barsha</span>
   </div>
 
   <div class="search">

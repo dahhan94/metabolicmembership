@@ -2,6 +2,10 @@ let VIEW='denied';
 let SESSION='exercise';
 const SESSION_VALUE={exercise:1710,physio:2400};
 const SESSION_LABEL={exercise:'6 exercise sessions',physio:'6 physio sessions'};
+const ICON_CLOCK='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/></svg>';
+const ICON_SHIELD='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.5l7 3v5.2c0 4.4-3 7.4-7 8.8-4-1.4-7-4.4-7-8.8V6.5l7-3z"/><path d="M9 12l2 2 4-4"/></svg>';
+const ICON_DUMBBELL='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9v6M6.5 7.5v9M17.5 7.5v9M20 9v6M6.5 12h11"/></svg>';
+const ICON_TAG='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12l9-9h7v7l-9 9-7-7z"/><circle cx="15" cy="8" r="1" fill="currentColor"/></svg>';
 const $=s=>document.querySelector(s);
 const money=n=>n.toLocaleString('en-AE',{maximumFractionDigits:0});
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
@@ -208,7 +212,7 @@ async function render(){
 
     ${V.set.length?`
     <h2 class="sec">${V.tableHd}</h2>
-    <table><thead><tr>
+    <div class="table-wrap"><table><thead><tr>
       <th></th><th>Date</th><th>Test</th><th class="payer">Insurer</th>
       <th>Outcome</th><th class="code">Reason</th><th style="text-align:right">Cash price</th>
     </tr></thead><tbody>
@@ -219,7 +223,7 @@ async function render(){
         <td class="val">${money(r.v)}</td></tr>`).join('')}
     </tbody><tfoot><tr>
       <td class="flag"></td><td colspan="5">${V.foot}</td>
-      <td class="val">AED ${money(V.val)}</td></tr></tfoot></table>
+      <td class="val">AED ${money(V.val)}</td></tr></tfoot></table></div>
 
     <div class="why">
       <div class="hd"><h3>${V.whyHd}</h3>
@@ -242,12 +246,20 @@ async function render(){
               <button type="button" data-s="physio" class="${SESSION==='physio'?'active':''}">Physio</button>
             </span>
           </div>
-          <ul>
-            <li><span>1 month portal monitoring</span><b>AED ${money(portalV)}</b></li>
-            <li><span>Copayment waived (5% of AED ${money(covV)} paid by insurer)</span><b>AED ${money(copayV)}</b></li>
-            <li><span>${SESSION_LABEL[SESSION]}</span><b>AED ${money(sessionV)}</b></li>
-            <li class="tbd"><span>Discounts on select cash services</span><b>Not yet defined</b></li>
-          </ul>
+          <div class="perks-grid">
+            <div class="perk-tile"><span class="perk-icon c1">${ICON_CLOCK}</span>
+              <div class="perk-lbl">1 month portal monitoring</div>
+              <div class="perk-val">AED ${money(portalV)}</div></div>
+            <div class="perk-tile"><span class="perk-icon c2">${ICON_SHIELD}</span>
+              <div class="perk-lbl">Copayment waived (5% of AED ${money(covV)} paid by insurer)</div>
+              <div class="perk-val">AED ${money(copayV)}</div></div>
+            <div class="perk-tile"><span class="perk-icon c3">${ICON_DUMBBELL}</span>
+              <div class="perk-lbl">${SESSION_LABEL[SESSION]}</div>
+              <div class="perk-val">AED ${money(sessionV)}</div></div>
+            <div class="perk-tile tbd"><span class="perk-icon c4">${ICON_TAG}</span>
+              <div class="perk-lbl">Discounts on select cash services</div>
+              <div class="perk-val">Not yet defined</div></div>
+          </div>
           <div class="perks-total"><span>Membership perks, this window</span><span>AED ${money(perksV)}</span></div>
         </div>
 
