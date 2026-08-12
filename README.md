@@ -1,5 +1,7 @@
 # Coverage history lookup — server
 
+Metabolic Membership tools for enrollment experience/optimization.
+
 Small Flask app. Patient data lives in a server-side SQLite database; the browser only ever
 receives the single record a signed-in staff member searches for. Every lookup is written to an
 access log (`access_log` table: username, MRN, timestamp).
