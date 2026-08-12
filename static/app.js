@@ -135,7 +135,7 @@ async function render(){
   const days=[...new Set([...rows.map(r=>r.d),...cv.map(([d])=>d)])].sort();
   const payer=(rows.find(r=>r.p)||{}).p||'—';
   const fee=+$('#fee').value||0;
-  const bar=Math.max(covV+denV+canRV,1);
+  const bar=Math.max(denV+canRV,1);
   const span=Math.round((new Date(days[days.length-1])-new Date(days[0]))/864e5)+1;
 
   const portalV=500;
@@ -179,13 +179,11 @@ async function render(){
     </dl>
 
     <div class="ledger">
-      <div class="bar" role="img" aria-label="Share of value by outcome">
-        <span style="width:${covV/bar*100}%;background:var(--covered)"></span>
+      <div class="bar" role="img" aria-label="Share of exposure by outcome">
         <span style="width:${denV/bar*100}%;background:var(--denied)"></span>
         <span style="width:${canRV/bar*100}%;background:var(--cancelled)"></span>
       </div>
       <div class="keys">
-        <span class="key"><i style="background:var(--covered)"></i>Paid by insurer <b>AED ${money(covV)}</b></span>
         <span class="key"><i style="background:var(--denied)"></i>Completed, Rejected <b>AED ${money(denV)}</b></span>
         <span class="key"><i style="background:var(--cancelled)"></i>Cancelled, Rejected <b>AED ${money(canRV)}</b></span>
       </div>
@@ -251,7 +249,7 @@ async function render(){
               <div class="perk-lbl">1 month portal monitoring</div>
               <div class="perk-val">AED ${money(portalV)}</div></div>
             <div class="perk-tile"><span class="perk-icon c2">${ICON_SHIELD}</span>
-              <div class="perk-lbl">Copayment waived (5% of AED ${money(covV)} paid by insurer)</div>
+              <div class="perk-lbl">Copayment waived (5% of your insurer-covered testing)</div>
               <div class="perk-val">AED ${money(copayV)}</div></div>
             <div class="perk-tile"><span class="perk-icon c3">${ICON_DUMBBELL}</span>
               <div class="perk-lbl">${SESSION_LABEL[SESSION]}</div>
@@ -280,11 +278,10 @@ async function render(){
               :'Membership costs more than this window shows — annualise it, or lead on the care plan'}</div></div>
         </div>
 
-        <p class="say">Between ${nice(days[0])} and ${nice(days[days.length-1])} the insurer paid for
-        <strong>AED ${money(covV)}</strong> of testing and rejected <strong>AED ${money(denV+canRV)}</strong>
-        — ${den.length} test${den.length===1?'':'s'} already done and billed to you,
-        ${canR.length} cancelled before ${canR.length===1?'it':'they'} could happen.
-        Membership at AED ${money(fee)} a year covers that, plus AED ${money(perksV)} in included
+        <p class="say">Between ${nice(days[0])} and ${nice(days[days.length-1])} the insurer rejected
+        <strong>AED ${money(denV+canRV)}</strong> in testing — ${den.length} test${den.length===1?'':'s'}
+        already done and billed to you, ${canR.length} cancelled before ${canR.length===1?'it':'they'} could
+        happen. Membership at AED ${money(fee)} a year covers that, plus AED ${money(perksV)} in included
         perks above — with no claim to file.</p>
       </div>
     </div>
