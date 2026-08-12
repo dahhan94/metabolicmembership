@@ -21,6 +21,10 @@ const normMrn=s=>s.replace(/[^0-9]/g,'').replace(/^0+/,'');
 
 // ignore stale fetch responses if the user triggers another lookup before the first resolves
 let REQ=0;
+// last successfully-loaded patient, so VIEW/SESSION/condition toggles can re-render
+// instantly from cache instead of re-fetching and flashing a loading state (which was
+// collapsing the page and snapping scroll to the top on every toggle click)
+let CURRENT=null;
 
 async function renderLanding(){
   const myReq=++REQ;
@@ -70,7 +74,7 @@ async function renderLanding(){
   $('#out').querySelectorAll('.why li.pick').forEach(li=>{
     li.addEventListener('click',()=>{
       $('#mrn').value=top[+li.dataset.idx][0];
-      render();
+      lookup();
     });
   });
 }
@@ -100,10 +104,10 @@ function dedupeRows(rows){
   return rows.filter(r=>keep.has(r));
 }
 
-async function render(){
+async function lookup(){
   const myReq=++REQ;
   const rawMrn=$('#mrn').value.trim(), from=$('#from').value, to=$('#to').value, out=$('#out');
-  if(!rawMrn){renderLanding();return;}
+  if(!rawMrn){CURRENT=null;renderLanding();return;}
   const mrn=normMrn(rawMrn);
   out.innerHTML='<div class="loading">Looking up record '+esc(mrn)+'…</div>';
 
@@ -119,12 +123,19 @@ async function render(){
   if(myReq!==REQ) return;
 
   if(!data.found){
+    CURRENT=null;
     out.innerHTML = data.exists
       ? '<div class="msg">Record '+esc(mrn)+' has no activity between '+nice(from)+' and '+nice(to)+'</div>'
       : '<div class="msg">No record '+esc(mrn)+' on file &mdash; check the number and try again</div>';
     return;
   }
 
+  CURRENT={mrn,data};
+  renderResult(mrn,data);
+}
+
+function renderResult(mrn,data){
+  const out=$('#out');
   const rows=dedupeRows(data.i);
   const pick=c=>rows.filter(r=>r.c===c), sum=a=>a.reduce((t,r)=>t+r.v,0);
   const unb=pick('Unbilled');
@@ -305,7 +316,7 @@ async function render(){
   </div>`;
 
   out.querySelectorAll('.vt button').forEach(b=>b.addEventListener('click',()=>{
-    VIEW=b.dataset.v;render();}));
+    VIEW=b.dataset.v;renderResult(mrn,data);}));
 
   const st=$('#staffToggle');
   if(st) st.addEventListener('click',()=>{
@@ -317,12 +328,18 @@ async function render(){
 
   const seg=$('#sessionSeg');
   if(seg) seg.querySelectorAll('button').forEach(b=>b.addEventListener('click',()=>{
-    SESSION=b.dataset.s;render();}));
+    SESSION=b.dataset.s;renderResult(mrn,data);}));
 }
 
-$('#go').addEventListener('click',render);
-$('#mrn').addEventListener('keydown',e=>{if(e.key==='Enter')render()});
-['#from','#to','#fee'].forEach(s=>$(s).addEventListener('change',render));
-document.querySelectorAll('.cond').forEach(c=>c.addEventListener('change',()=>{if($('#mrn').value.trim())render();}));
+$('#go').addEventListener('click',lookup);
+$('#mrn').addEventListener('keydown',e=>{if(e.key==='Enter')lookup()});
+['#from','#to'].forEach(s=>$(s).addEventListener('change',lookup));
+$('#fee').addEventListener('change',()=>{
+  if(CURRENT) renderResult(CURRENT.mrn,CURRENT.data);
+  else renderLanding();
+});
+document.querySelectorAll('.cond').forEach(c=>c.addEventListener('change',()=>{
+  if(CURRENT) renderResult(CURRENT.mrn,CURRENT.data);
+}));
 
 renderLanding();
