@@ -1,11 +1,9 @@
 import os
 import sqlite3
-import tempfile
-from datetime import datetime
 from functools import wraps
 from pathlib import Path
 
-from flask import Flask, abort, g, jsonify, redirect, render_template, request, session, url_for
+from flask import Flask, g, jsonify, redirect, render_template, request, session, url_for
 from werkzeug.security import check_password_hash
 
 DB_PATH = Path(__file__).parent / "data" / "coverage.db"
@@ -145,33 +143,6 @@ def api_patient(raw_mrn):
         "i": [{"d": r["d"], "s": r["s"], "p": r["p"], "c": r["c"], "k": r["k"], "v": r["v"]} for r in items],
         "v": {r["d"]: [r["i"], r["v"]] for r in daily},
     })
-
-
-# One-time bootstrap: push a locally-built coverage.db onto the deployed persistent disk
-# without ever committing patient data to git. Delete this route (and the ADMIN_TOKEN env
-# var) once the initial upload is done — it's not meant to stay live.
-@app.route("/admin/upload-db", methods=["POST"])
-def admin_upload_db():
-    token = os.environ.get("ADMIN_TOKEN")
-    if not token or request.headers.get("X-Admin-Token") != token:
-        abort(404)
-    DB_PATH.parent.mkdir(parents=True, exist_ok=True)
-    fd, tmp_path = tempfile.mkstemp(dir=DB_PATH.parent)
-    try:
-        with os.fdopen(fd, "wb") as f:
-            f.write(request.get_data())
-        con = sqlite3.connect(tmp_path)
-        tables = {r[0] for r in con.execute("SELECT name FROM sqlite_master WHERE type='table'")}
-        con.close()
-        if not {"items", "covered_daily", "summary", "users"}.issubset(tables):
-            os.unlink(tmp_path)
-            return jsonify({"ok": False, "error": "uploaded file is missing expected tables"}), 400
-        os.replace(tmp_path, DB_PATH)
-    except Exception:
-        if os.path.exists(tmp_path):
-            os.unlink(tmp_path)
-        raise
-    return jsonify({"ok": True, "bytes": DB_PATH.stat().st_size})
 
 
 if __name__ == "__main__":
