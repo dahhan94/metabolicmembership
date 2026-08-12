@@ -6,6 +6,10 @@ const ICON_CLOCK='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" str
 const ICON_SHIELD='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.5l7 3v5.2c0 4.4-3 7.4-7 8.8-4-1.4-7-4.4-7-8.8V6.5l7-3z"/><path d="M9 12l2 2 4-4"/></svg>';
 const ICON_DUMBBELL='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9v6M6.5 7.5v9M17.5 7.5v9M20 9v6M6.5 12h11"/></svg>';
 const ICON_TAG='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12l9-9h7v7l-9 9-7-7z"/><circle cx="15" cy="8" r="1" fill="currentColor"/></svg>';
+const ICON_HASH='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 9h14M5 15h14M10 4L8 20M16 4l-2 16"/></svg>';
+const ICON_BUILDING='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="3.5" width="12" height="17" rx="1"/><path d="M9 7.5h1M14 7.5h1M9 11h1M14 11h1M9 14.5h1M14 14.5h1"/></svg>';
+const ICON_PULSE='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h4l2-7 4 14 2-7h6"/></svg>';
+const ICON_CALENDAR='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="5" width="16" height="15" rx="2"/><path d="M4 10h16M8 3v4M16 3v4"/></svg>';
 const $=s=>document.querySelector(s);
 const money=n=>n.toLocaleString('en-AE',{maximumFractionDigits:0});
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
@@ -171,11 +175,11 @@ async function render(){
 
   out.innerHTML=`<div class="result">
     <dl class="ident">
-      <div><dt>Record</dt><dd>${esc(mrn)}</dd></div>
-      <div><dt>Insurer</dt><dd>${esc(payer)}</dd></div>
-      <div><dt>Visits</dt><dd>${days.length}</dd></div>
-      <div><dt>First</dt><dd>${nice(days[0])}</dd></div>
-      <div><dt>Last</dt><dd>${nice(days[days.length-1])}</dd></div>
+      <div><span class="icon-chip c1">${ICON_HASH}</span><dt>Record</dt><dd>${esc(mrn)}</dd></div>
+      <div><span class="icon-chip c2">${ICON_BUILDING}</span><dt>Insurer</dt><dd>${esc(payer)}</dd></div>
+      <div><span class="icon-chip c3">${ICON_PULSE}</span><dt>Visits</dt><dd>${days.length}</dd></div>
+      <div><span class="icon-chip c4">${ICON_CALENDAR}</span><dt>First</dt><dd>${nice(days[0])}</dd></div>
+      <div><span class="icon-chip c1">${ICON_CALENDAR}</span><dt>Last</dt><dd>${nice(days[days.length-1])}</dd></div>
     </dl>
 
     <div class="ledger">

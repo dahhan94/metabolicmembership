@@ -106,6 +106,8 @@ button:hover{background:var(--accent)}
   box-shadow:var(--shadow);background:var(--card);overflow:hidden}
 .ident div{padding:14px 16px;border-right:1px solid var(--rule);flex:1;min-width:118px}
 .ident div:last-child{border-right:none}
+.ident .icon-chip{width:26px;height:26px;border-radius:7px;margin-bottom:8px}
+.ident .icon-chip svg{width:14px;height:14px}
 .ident dt{font-family:var(--mono);font-size:9.5px;letter-spacing:.11em;text-transform:uppercase;
   color:var(--ink-60);margin:0 0 3px}
 .ident dd{font-family:var(--mono);font-size:15px;font-weight:500;margin:0;letter-spacing:.02em}
@@ -235,19 +237,22 @@ footer{margin-top:44px;padding-top:16px;border-top:1px solid var(--rule);
   font-size:10.5px;letter-spacing:.05em;text-transform:uppercase;cursor:pointer;font-weight:500}
 .seg button.active{background:var(--accent);color:#fff}
 
+.icon-chip{width:32px;height:32px;border-radius:9px;display:flex;align-items:center;justify-content:center;
+  color:var(--ink);flex-shrink:0}
+.icon-chip svg{width:17px;height:17px}
+.icon-chip.c1{background:var(--pink-beige)}
+.icon-chip.c2{background:var(--sky-blue)}
+.icon-chip.c3{background:var(--flashy-teal)}
+.icon-chip.c4{background:var(--yellow-beige)}
+
 .perks-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:14px}
 .perk-tile{background:var(--card);border:1px solid var(--rule);border-radius:var(--radius-sm);
   padding:14px;box-shadow:var(--shadow)}
-.perk-icon{width:32px;height:32px;border-radius:9px;display:flex;align-items:center;justify-content:center;
-  margin-bottom:10px;color:var(--ink)}
-.perk-icon svg{width:17px;height:17px}
-.perk-icon.c1{background:var(--pink-beige)}
-.perk-icon.c2{background:var(--sky-blue)}
-.perk-icon.c3{background:var(--flashy-teal)}
-.perk-icon.c4{background:var(--yellow-beige);color:var(--ink-35)}
+.perk-tile .icon-chip{margin-bottom:10px}
 .perk-lbl{font-size:12.5px;color:var(--ink-60);line-height:1.35;margin-bottom:6px}
 .perk-val{font-family:var(--mono);font-weight:700;font-size:15px}
 .perk-tile.tbd .perk-val{color:var(--ink-35);font-style:italic;font-weight:500;font-size:13px}
+.perk-tile.tbd .icon-chip{color:var(--ink-35)}
 
 .perks-total{display:flex;justify-content:space-between;padding-top:10px;
   border-top:1px solid var(--accent);font-family:var(--mono);font-size:13.5px;font-weight:600}
