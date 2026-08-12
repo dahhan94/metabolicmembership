@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Coverage history lookup — Metabolic</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head><body>
+<div class="wrap">
+
+  <div class="mast">
+    <h1>Coverage history</h1>
+    <span class="sub">Metabolic · Jumeirah &amp; Al Barsha</span>
+    <span class="spacer"></span>
+    <span class="who">Signed in as {{ user }} &middot; <a href="{{ url_for('logout') }}">Sign out</a></span>
+    <label class="fee">Membership fee AED
+      <input id="fee" type="number" value="1999" min="0" step="100" aria-label="Annual membership fee in AED">
+    </label>
+  </div>
+
+  <div class="search">
+    <div class="field"><label for="mrn">Record number</label>
+      <input id="mrn" type="text" placeholder="298664" autocomplete="off"></div>
+    <div class="field"><label for="from">From</label>
+      <input id="from" type="date" value="{{ date_min }}" min="{{ date_min }}" max="{{ date_max }}"></div>
+    <div class="field"><label for="to">To</label>
+      <input id="to" type="date" value="{{ date_max }}" min="{{ date_min }}" max="{{ date_max }}"></div>
+    <button id="go">Look up</button>
+    <p class="hint" id="hint">6 Apr &ndash; 10 Jul 2026.</p>
+  </div>
+
+  <div class="conds">
+    <span class="cl">Show why these tests matter for</span>
+    <label class="chip"><input type="checkbox" class="cond" value="dm" checked><span>Diabetes</span></label>
+    <label class="chip"><input type="checkbox" class="cond" value="pre"><span>Pre-diabetes</span></label>
+    <label class="chip"><input type="checkbox" class="cond" value="oth"><span>Other metabolic risk</span></label>
+  </div>
+
+  <div id="out"><div class="msg">Enter a record number to see coverage history</div></div>
+
+  <footer>
+    Source: XeHealth care items reconciled against insurance submissions, 6 Apr – 10 Jul 2026.<br>
+    Values at published cash price. Test rationale is general clinical information, not individual medical advice — for
+    staff use in framing the conversation, not a substitute for individual clinical judgement.<br>
+    Every lookup is logged against your account. Data stays on the server — this page only ever receives the one
+    record you search for.
+  </footer>
+</div>
+<script src="{{ url_for('static', filename='indications.js') }}"></script>
+<script src="{{ url_for('static', filename='app.js') }}"></script>
+</body></html>
