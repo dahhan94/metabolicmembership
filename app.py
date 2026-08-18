@@ -1,10 +1,11 @@
 import os
 import sqlite3
+import tempfile
 from datetime import date, timedelta
 from functools import wraps
 from pathlib import Path
 
-from flask import Flask, g, jsonify, redirect, render_template, request, session, url_for
+from flask import Flask, abort, g, jsonify, redirect, render_template, request, session, url_for
 from werkzeug.security import check_password_hash
 
 DB_PATH = Path(__file__).parent / "data" / "coverage.db"
@@ -206,6 +207,45 @@ def api_patient(raw_mrn):
 @login_required
 def outreach():
     return render_template("outreach.html", user=session["user"])
+
+
+# One-time bootstrap: merge a locally-built appointments/contacts/diagnoses set onto the
+# deployed disk without touching users/access_log/items or ever committing patient data to
+# git. Delete this route (and the ADMIN_TOKEN env var) once the initial load is done.
+@app.route("/admin/upload-outreach", methods=["POST"])
+def admin_upload_outreach():
+    token = os.environ.get("ADMIN_TOKEN")
+    if not token or request.headers.get("X-Admin-Token") != token:
+        abort(404)
+    fd, tmp_path = tempfile.mkstemp(dir=DB_PATH.parent)
+    try:
+        with os.fdopen(fd, "wb") as f:
+            f.write(request.get_data())
+        src = sqlite3.connect(tmp_path)
+        tables = {r[0] for r in src.execute("SELECT name FROM sqlite_master WHERE type='table'")}
+        if not {"appointments", "contacts", "diagnoses"}.issubset(tables):
+            src.close()
+            os.unlink(tmp_path)
+            return jsonify({"ok": False, "error": "uploaded file is missing expected tables"}), 400
+        db = get_db()
+        counts = {}
+        for tbl in ("appointments", "contacts", "diagnoses"):
+            schema = src.execute(f"SELECT sql FROM sqlite_master WHERE name='{tbl}'").fetchone()[0]
+            db.execute(f"DROP TABLE IF EXISTS {tbl}")
+            db.execute(schema)
+            rows = src.execute(f"SELECT * FROM {tbl}").fetchall()
+            cols = [d[1] for d in src.execute(f"PRAGMA table_info({tbl})")]
+            placeholders = ",".join("?" * len(cols))
+            db.executemany(f"INSERT INTO {tbl} VALUES ({placeholders})", rows)
+            counts[tbl] = len(rows)
+        db.execute("CREATE INDEX IF NOT EXISTS idx_appt_mrn ON appointments(mrn, appointment_date)")
+        db.execute("CREATE INDEX IF NOT EXISTS idx_appt_date ON appointments(appointment_date, attended)")
+        db.commit()
+        src.close()
+    finally:
+        if os.path.exists(tmp_path):
+            os.unlink(tmp_path)
+    return jsonify({"ok": True, "counts": counts})
 
 
 @app.route("/api/outreach")
