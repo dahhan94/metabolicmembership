@@ -23,41 +23,37 @@ def normalize_mrn(raw):
 
 
 def build(summary_path, items_path, daily_path):
+    """Rebuilds only items/covered_daily/summary. Leaves users, access_log, and the
+    outreach tables (appointments/contacts/diagnoses) untouched — a naive full-file
+    wipe here would destroy real logins and the access history on every refresh."""
     DB_PATH.parent.mkdir(parents=True, exist_ok=True)
-    if DB_PATH.exists():
-        DB_PATH.unlink()
     con = sqlite3.connect(DB_PATH)
     cur = con.cursor()
 
-    cur.execute("""
+    cur.executescript("""
+        DROP TABLE IF EXISTS items;
+        DROP TABLE IF EXISTS covered_daily;
+        DROP TABLE IF EXISTS summary;
         CREATE TABLE items(
             mrn TEXT, service_date TEXT, service TEXT, payer TEXT,
             category TEXT, denial_code TEXT, cash_value REAL
-        )
-    """)
-    cur.execute("""
+        );
         CREATE TABLE covered_daily(
             mrn TEXT, service_date TEXT, items REAL, cash REAL
-        )
-    """)
-    cur.execute("""
+        );
         CREATE TABLE summary(
             mrn TEXT PRIMARY KEY, denied_cash REAL, canR_cash REAL, canO_cash REAL
-        )
-    """)
-    cur.execute("""
-        CREATE TABLE users(
+        );
+        CREATE TABLE IF NOT EXISTS users(
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             username TEXT UNIQUE NOT NULL,
             password_hash TEXT NOT NULL,
             created_at TEXT DEFAULT CURRENT_TIMESTAMP
-        )
-    """)
-    cur.execute("""
-        CREATE TABLE access_log(
+        );
+        CREATE TABLE IF NOT EXISTS access_log(
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             username TEXT, mrn TEXT, action TEXT, ts TEXT DEFAULT CURRENT_TIMESTAMP
-        )
+        );
     """)
 
     n_items = 0

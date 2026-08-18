@@ -45,7 +45,7 @@ async function renderLanding(){
   $('#out').innerHTML=`<div class="landing">
     <div class="msg" style="text-align:left;padding:18px 20px">Enter a record number above to see one patient's coverage history.</div>
     <div class="case">
-      <div class="hd">Cohort exposure at AED ${money(fee)} membership &middot; ${total} patients &middot; 6 Apr&ndash;10 Jul 2026</div>
+      <div class="hd">Cohort exposure at AED ${money(fee)} membership &middot; ${total} patients &middot; 6 Apr&ndash;31 Jul 2026</div>
       <div class="bd">
         <div class="compare">
           <div><div class="lbl">Have at least one denial</div><div class="num">${hasDenial}</div>
@@ -58,7 +58,7 @@ async function renderLanding(){
             <div class="note">Denied + cancelled, all reasons &gt; AED ${money(fee)}</div></div>
         </div>
         <p class="say">Adjust the membership fee above to model a different tier — every figure here recomputes
-        against the same 95-day window. This is aggregate framing for deciding who to call, not a substitute
+        against the same 117-day window. This is aggregate framing for deciding who to call, not a substitute
         for looking up the patient in front of you — and cancelled-other is never a refusal, so keep that
         distinction when you talk to the patient directly.</p>
       </div>

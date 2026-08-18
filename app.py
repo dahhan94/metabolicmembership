@@ -8,7 +8,7 @@ from flask import Flask, g, jsonify, redirect, render_template, request, session
 from werkzeug.security import check_password_hash
 
 DB_PATH = Path(__file__).parent / "data" / "coverage.db"
-DATE_MIN, DATE_MAX = "2026-04-06", "2026-07-10"
+DATE_MIN, DATE_MAX = "2026-04-06", "2026-07-31"
 
 # same clustering rule as static/app.js: a service re-billed under a different category
 # within 2 days is one clinical event, not several — a real Denied beats an Unbilled
