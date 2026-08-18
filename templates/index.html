@@ -14,6 +14,10 @@
   <div class="topbar-inner">
     {% include '_logo.html' %}
     <span class="topbar-label">Coverage History &middot; Staff Tool</span>
+    <nav class="topbar-nav">
+      <a class="active" href="{{ url_for('index') }}">Lookup</a>
+      <a href="{{ url_for('outreach') }}">Outreach list</a>
+    </nav>
     <span class="spacer"></span>
     <span class="who">Signed in as {{ user }} &middot; <a href="{{ url_for('logout') }}">Sign out</a></span>
     <label class="fee">Membership fee AED

@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Outreach list — Metabolic</title>
+<link rel="icon" type="image/png" sizes="32x32" href="{{ url_for('static', filename='favicon-32.png') }}">
+<link rel="icon" type="image/png" sizes="16x16" href="{{ url_for('static', filename='favicon-16.png') }}">
+<link rel="apple-touch-icon" href="{{ url_for('static', filename='apple-touch-icon.png') }}">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head><body>
+<div class="topbar">
+  <div class="topbar-inner">
+    {% include '_logo.html' %}
+    <span class="topbar-label">Coverage History &middot; Staff Tool</span>
+    <nav class="topbar-nav">
+      <a href="{{ url_for('index') }}">Lookup</a>
+      <a class="active" href="{{ url_for('outreach') }}">Outreach list</a>
+    </nav>
+    <span class="spacer"></span>
+    <span class="who">Signed in as {{ user }} &middot; <a href="{{ url_for('logout') }}">Sign out</a></span>
+  </div>
+</div>
+<div class="wrap">
+
+  <div class="mast">
+    <h1>Package outreach</h1>
+    <span class="sub">Upcoming, unattended appointments &middot; eligible condition on file</span>
+  </div>
+
+  <div class="search">
+    <div class="field"><label for="days">Appointment within</label>
+      <input id="days" type="number" value="14" min="1" max="90" step="1"> </div>
+    <button id="go">Refresh</button>
+    <p class="hint" id="hint">Sorted by strongest talking point first.</p>
+  </div>
+
+  <div id="out"><div class="loading">Loading…</div></div>
+
+  <footer>
+    Candidates: an unattended appointment booked within the window above, a non-blank diagnosis on file, and at
+    least one Denied/Cancelled/Unbilled item somewhere in their billing history.<br>
+    The cited value is their highest-value visit in the last 4 months — or, if none, the highest-value visit on
+    record at all. It is a talking point for the call, not a guaranteed charge; confirm specifics in the main
+    lookup before quoting a number to the patient.<br>
+    Every load of this list is logged against your account.
+  </footer>
+</div>
+<script src="{{ url_for('static', filename='outreach.js') }}"></script>
+</body></html>

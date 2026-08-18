@@ -78,6 +78,23 @@ This rebuilds `data/coverage.db` from scratch — logins and the access log live
 so back it up first if you want to keep history across a refresh (or move `users`/`access_log` to
 a separate DB file if refreshes become frequent).
 
+## Outreach list
+
+A second page (`/outreach`) surfaces patients with an unattended appointment coming up, a
+diagnosis on file, and rejected/cancelled billing history worth mentioning on the call. It adds
+three tables (`appointments`, `contacts`, `diagnoses`) to the same `coverage.db` — run this after
+`build_db.py`, whenever the retention workbook or diagnosis export refreshes:
+
+```bash
+python3 build_outreach.py /path/to/Retention_Master.xlsx /path/to/NewPatientLook.csv
+```
+
+Defaults to the Downloads copies if no paths are given. Like the billing CSVs, these source files
+never get committed — only the compiled `coverage.db` (already gitignored) holds the data.
+
+The "rejected value" shown is the patient's highest-value visit in the last 4 months, or their
+highest-value visit ever if none fall in that window — a talking point, not a live quote.
+
 ## What changed vs. the standalone HTML file
 
 - Patient data no longer ships to the browser — `/api/patient/<mrn>` returns only the record

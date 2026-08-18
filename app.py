@@ -1,5 +1,6 @@
 import os
 import sqlite3
+from datetime import date, timedelta
 from functools import wraps
 from pathlib import Path
 
@@ -8,6 +9,62 @@ from werkzeug.security import check_password_hash
 
 DB_PATH = Path(__file__).parent / "data" / "coverage.db"
 DATE_MIN, DATE_MAX = "2026-04-06", "2026-07-10"
+
+# same clustering rule as static/app.js: a service re-billed under a different category
+# within 2 days is one clinical event, not several — a real Denied beats an Unbilled
+# placeholder, and repeats within a bucket collapse to one.
+DEN_TYPE = {"Denied", "Unbilled"}
+REJECTED_CATEGORIES = {"Denied", "Unbilled", "Cancelled - rejected", "Cancelled - other"}
+
+
+def dedupe_items(rows):
+    groups = {}
+    for r in rows:
+        groups.setdefault((r["s"], r["v"]), []).append(r)
+    keep = []
+    for lst in groups.values():
+        lst.sort(key=lambda r: r["d"])
+        cluster = [lst[0]]
+
+        def flush(cluster):
+            den = sorted((r for r in cluster if r["c"] in DEN_TYPE),
+                         key=lambda r: 0 if r["c"] == "Denied" else 1)
+            keep.append(den[0] if den else cluster[0])
+
+        for i in range(1, len(lst)):
+            gap = (date.fromisoformat(lst[i]["d"]) - date.fromisoformat(lst[i - 1]["d"])).days
+            if gap <= 2:
+                cluster.append(lst[i])
+            else:
+                flush(cluster)
+                cluster = [lst[i]]
+        flush(cluster)
+    return keep
+
+
+def rejected_value_by_date(db, mrn):
+    rows = [dict(r) for r in db.execute(
+        "SELECT service_date d, service s, category c, cash_value v FROM items WHERE mrn=?",
+        (mrn,),
+    ).fetchall()]
+    by_date = {}
+    for r in dedupe_items(rows):
+        if r["c"] in REJECTED_CATEGORIES:
+            by_date[r["d"]] = by_date.get(r["d"], 0) + r["v"]
+    return by_date
+
+
+def best_recent_visit(by_date, today, months_back=4):
+    """The most valuable visit in the last N months; if none, the most valuable ever."""
+    if not by_date:
+        return None, 0
+    window_start = today - timedelta(days=30 * months_back)
+    recent = {d: v for d, v in by_date.items() if v > 0 and date.fromisoformat(d) >= window_start}
+    pool = recent or {d: v for d, v in by_date.items() if v > 0}
+    if not pool:
+        return None, 0
+    best_date = max(pool, key=pool.get)
+    return best_date, pool[best_date]
 
 app = Flask(__name__)
 app.secret_key = os.environ.get("SECRET_KEY")
@@ -143,6 +200,60 @@ def api_patient(raw_mrn):
         "i": [{"d": r["d"], "s": r["s"], "p": r["p"], "c": r["c"], "k": r["k"], "v": r["v"]} for r in items],
         "v": {r["d"]: [r["i"], r["v"]] for r in daily},
     })
+
+
+@app.route("/outreach")
+@login_required
+def outreach():
+    return render_template("outreach.html", user=session["user"])
+
+
+@app.route("/api/outreach")
+@login_required
+def api_outreach():
+    days = request.args.get("days", type=int) or 14
+    days = max(1, min(days, 90))
+    db = get_db()
+    today = date.today()
+    horizon = today + timedelta(days=days)
+
+    candidates = db.execute("""
+        SELECT a.mrn, MIN(a.appointment_date) next_appt, a.disease_category, a.care_package
+        FROM appointments a
+        JOIN diagnoses d ON d.mrn = a.mrn AND TRIM(d.diagnosis_groups) != ''
+        WHERE a.attended = 0 AND a.appointment_date BETWEEN ? AND ? AND a.mrn != '9999999'
+        GROUP BY a.mrn
+    """, (today.isoformat(), horizon.isoformat())).fetchall()
+
+    results = []
+    for row in candidates:
+        mrn = row["mrn"]
+        by_date = rejected_value_by_date(db, mrn)
+        vdate, value = best_recent_visit(by_date, today)
+        if value <= 0:
+            continue
+        contact = db.execute("SELECT * FROM contacts WHERE mrn=?", (mrn,)).fetchone()
+        payer_row = db.execute(
+            "SELECT payer FROM items WHERE mrn=? AND service_date=? AND payer IS NOT NULL AND payer!='' LIMIT 1",
+            (mrn, vdate),
+        ).fetchone()
+        results.append({
+            "mrn": mrn,
+            "appointmentDate": row["next_appt"],
+            "diseaseCategory": row["disease_category"],
+            "carePackage": row["care_package"],
+            "firstName": contact["first_name"] if contact else None,
+            "surname": contact["surname"] if contact else None,
+            "phone": contact["mobile_phone"] if contact else None,
+            "email": contact["email"] if contact else None,
+            "insurer": payer_row["payer"] if payer_row else None,
+            "value": value,
+            "valueDate": vdate,
+        })
+
+    results.sort(key=lambda x: x["value"], reverse=True)
+    log_access("(bulk)", f"outreach-list:{len(results)}")
+    return jsonify({"days": days, "today": today.isoformat(), "results": results})
 
 
 if __name__ == "__main__":
