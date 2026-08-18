@@ -18,6 +18,12 @@ DB_PATH = Path(__file__).parent / "data" / "coverage.db"
 
 
 def normalize_mrn(raw):
+    # openpyxl reads some Glucare No / Secondary MRN cells as float (298616.0). str() on
+    # a float keeps the decimal point's trailing zero once non-digits are stripped
+    # ("298616.0" -> "2986160"), silently corrupting every whole-number-float MRN. Collapse
+    # to int first so only genuinely non-numeric text (e.g. "G014645") hits the string path.
+    if isinstance(raw, float) and raw.is_integer():
+        raw = int(raw)
     digits = "".join(ch for ch in str(raw) if ch.isdigit())
     return digits.lstrip("0") or "0"
 
