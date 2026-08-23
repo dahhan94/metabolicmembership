@@ -35,7 +35,7 @@ async function load(){
       <b>${ROWS.length}</b> candidate${ROWS.length===1?'':'s'} with an appointment by ${nice(data.today?addDays(data.today,days):null)}
       &middot; click a row for the test breakdown
     </div>
-    <div class="table-wrap"><table><thead><tr>
+    <div class="table-wrap"><div class="tscroll"><table><thead><tr>
       <th>Patient</th><th>Phone</th><th>Appt date</th><th>Condition</th>
       <th class="payer">Insurer</th><th style="text-align:right">Completed, Rejected</th>
       <th style="text-align:right">Cancelled, Rejected</th><th>On visit</th>
@@ -57,7 +57,7 @@ async function load(){
           <span class="tag ${DEN_TYPE.has(c.category)?'t-denied':'t-cancelled'}">${esc(c.category)}</span>
           <b>AED ${money(c.value)}</b></li>`).join('')}</ul>
       </td></tr>`).join('')}
-    </tbody></table></div>
+    </tbody></table></div></div>
   </div>`;
 
   out.querySelectorAll('tr.pick').forEach(tr=>{

@@ -166,9 +166,12 @@ function renderResult(mrn,data){
   // components with a real number attached feed the total
   const perksV=copayV+sessionV+OSA_VALUE;
 
-  // per-year estimate: (completed-rejected + cancelled-rejected + copay waiver) per visit,
-  // annualised on an assumed ~5 visits/year care cadence — a talking point, not a quote
-  const perVisit=(denV+canRV+copayV)/Math.max(days.length,1);
+  // per-year estimate: cancelled-rejected + copay waiver, per visit, annualised on an
+  // assumed ~5 visits/year care cadence. Completed-rejected is deliberately excluded —
+  // the clinic doesn't always actually charge the patient for it, so it isn't a safe
+  // number to build the commercial case on. Cancelled-rejected is unambiguous: the test
+  // never happened at all, full stop.
+  const perVisit=(canRV+copayV)/Math.max(days.length,1);
   const annualEstimate=Math.round(perVisit*5);
 
   const V = VIEW==='denied'
@@ -188,9 +191,10 @@ function renderResult(mrn,data){
              'Cancelled - rejected':'<span class="tag t-cancelled">Cancelled</span>',
              'Cancelled - other':'<span class="tag t-cancelled">Cancelled</span>'};
 
-  const periodVal=PERIOD==='year'?annualEstimate:V.val;
-  const periodPerks=PERIOD==='year'?0:perksV; // the annual estimate already blends in the copay waiver
-  const basis=periodVal+periodPerks;
+  // the commercial case always runs on cancelled-rejected value, regardless of which
+  // view tab is open above — completed-rejected isn't reliably charged to the patient
+  const periodVal=PERIOD==='year'?annualEstimate:canRV;
+  const basis=periodVal+perksV;
 
   out.innerHTML=`<div class="result">
     <dl class="ident">
@@ -235,7 +239,7 @@ function renderResult(mrn,data){
     <details class="tbl-collapse">
       <summary><h2 class="sec" style="margin-top:0;border-bottom:none;padding-bottom:0">${V.tableHd}
         <span class="chev">${V.set.length} test${V.set.length===1?'':'s'}</span></h2></summary>
-      <div class="table-wrap"><table><thead><tr>
+      <div class="table-wrap"><div class="tscroll"><table><thead><tr>
         <th></th><th>Date</th><th>Test</th><th class="payer">Insurer</th>
         <th>Outcome</th><th class="code">Reason</th><th style="text-align:right">Cash price</th>
       </tr></thead><tbody>
@@ -246,7 +250,7 @@ function renderResult(mrn,data){
           <td class="val">${money(r.v)}</td></tr>`).join('')}
       </tbody><tfoot><tr>
         <td class="flag"></td><td colspan="5">${V.foot}</td>
-        <td class="val">AED ${money(V.val)}</td></tr></tfoot></table></div>
+        <td class="val">AED ${money(V.val)}</td></tr></tfoot></table></div></div>
     </details>`:''}
 
     <div class="case">
@@ -287,12 +291,12 @@ function renderResult(mrn,data){
         </div>
 
         <div class="compare">
-          <div><div class="lbl">${PERIOD==='year'?'Estimated per year':(VIEW==='denied'?'Paid out of pocket':'Value of care missed')}</div>
-            <div class="num ${PERIOD==='window'&&VIEW==='denied'?'neg':''}">${money(periodVal)}</div>
-            <div class="note">${PERIOD==='year'?'Completed+cancelled rejected & copay, per visit &times; 5':`${span} days, ${nice(days[0])} – ${nice(days[days.length-1])}`}</div></div>
+          <div><div class="lbl">${PERIOD==='year'?'Estimated per year':'Value of care missed'}</div>
+            <div class="num">${money(periodVal)}</div>
+            <div class="note">${PERIOD==='year'?'Cancelled rejected & copay, per visit &times; 5':`${span} days, ${nice(days[0])} – ${nice(days[days.length-1])}`}</div></div>
           <div><div class="lbl">Plus membership perks</div>
-            <div class="num">${money(periodPerks)}</div>
-            <div class="note">${PERIOD==='year'?'Already folded into the per-year estimate':`Portal, copay waiver, ${SESSION} sessions, OSA`}</div></div>
+            <div class="num">${money(perksV)}</div>
+            <div class="note">Portal, copay waiver, ${SESSION} sessions, OSA</div></div>
           <div><div class="lbl">Membership, one year</div>
             <div class="num">${money(fee)}</div>
             <div class="note">Every test listed included, no claim to file</div></div>
