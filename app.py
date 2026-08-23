@@ -42,7 +42,7 @@ def dedupe_items(rows):
     return keep
 
 
-def rejected_value_by_date(db, mrn):
+def rejected_items_by_date(db, mrn):
     rows = [dict(r) for r in db.execute(
         "SELECT service_date d, service s, category c, cash_value v FROM items WHERE mrn=?",
         (mrn,),
@@ -50,21 +50,23 @@ def rejected_value_by_date(db, mrn):
     by_date = {}
     for r in dedupe_items(rows):
         if r["c"] in REJECTED_CATEGORIES:
-            by_date[r["d"]] = by_date.get(r["d"], 0) + r["v"]
+            by_date.setdefault(r["d"], []).append(r)
     return by_date
 
 
 def best_recent_visit(by_date, today, months_back=4):
-    """The most valuable visit in the last N months; if none, the most valuable ever."""
-    if not by_date:
-        return None, 0
+    """The most valuable visit in the last N months; if none, the most valuable ever.
+    Returns (date, item list) for that visit, or (None, []) if nothing has value."""
+    totals = {d: sum(r["v"] for r in items) for d, items in by_date.items()}
+    if not totals:
+        return None, []
     window_start = today - timedelta(days=30 * months_back)
-    recent = {d: v for d, v in by_date.items() if v > 0 and date.fromisoformat(d) >= window_start}
-    pool = recent or {d: v for d, v in by_date.items() if v > 0}
+    recent = {d: v for d, v in totals.items() if v > 0 and date.fromisoformat(d) >= window_start}
+    pool = recent or {d: v for d, v in totals.items() if v > 0}
     if not pool:
-        return None, 0
+        return None, []
     best_date = max(pool, key=pool.get)
-    return best_date, pool[best_date]
+    return best_date, by_date[best_date]
 
 app = Flask(__name__)
 app.secret_key = os.environ.get("SECRET_KEY")
@@ -228,10 +230,12 @@ def api_outreach():
     results = []
     for row in candidates:
         mrn = row["mrn"]
-        by_date = rejected_value_by_date(db, mrn)
-        vdate, value = best_recent_visit(by_date, today)
-        if value <= 0:
+        by_date = rejected_items_by_date(db, mrn)
+        vdate, items_on_date = best_recent_visit(by_date, today)
+        if not items_on_date:
             continue
+        completed_value = sum(r["v"] for r in items_on_date if r["c"] in DEN_TYPE)
+        cancelled_value = sum(r["v"] for r in items_on_date if r["c"] not in DEN_TYPE)
         contact = db.execute("SELECT * FROM contacts WHERE mrn=?", (mrn,)).fetchone()
         payer_row = db.execute(
             "SELECT payer FROM items WHERE mrn=? AND service_date=? AND payer IS NOT NULL AND payer!='' LIMIT 1",
@@ -247,8 +251,12 @@ def api_outreach():
             "phone": contact["mobile_phone"] if contact else None,
             "email": contact["email"] if contact else None,
             "insurer": payer_row["payer"] if payer_row else None,
-            "value": value,
+            "completedValue": completed_value,
+            "cancelledValue": cancelled_value,
+            "value": completed_value + cancelled_value,
             "valueDate": vdate,
+            "components": [{"service": r["s"], "category": r["c"], "value": r["v"]}
+                           for r in sorted(items_on_date, key=lambda r: -r["v"])],
         })
 
     results.sort(key=lambda x: x["value"], reverse=True)

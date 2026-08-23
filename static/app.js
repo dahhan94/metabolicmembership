@@ -1,29 +1,36 @@
 let VIEW='denied';
 let SESSION='exercise';
+let PERIOD='window';
 const SESSION_VALUE={exercise:1710,physio:2400};
 const SESSION_LABEL={exercise:'6 exercise sessions',physio:'6 physio sessions'};
-const ICON_CLOCK='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/></svg>';
-const ICON_SHIELD='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.5l7 3v5.2c0 4.4-3 7.4-7 8.8-4-1.4-7-4.4-7-8.8V6.5l7-3z"/><path d="M9 12l2 2 4-4"/></svg>';
-const ICON_DUMBBELL='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9v6M6.5 7.5v9M17.5 7.5v9M20 9v6M6.5 12h11"/></svg>';
-const ICON_TAG='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12l9-9h7v7l-9 9-7-7z"/><circle cx="15" cy="8" r="1" fill="currentColor"/></svg>';
-const ICON_HASH='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 9h14M5 15h14M10 4L8 20M16 4l-2 16"/></svg>';
-const ICON_BUILDING='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="3.5" width="12" height="17" rx="1"/><path d="M9 7.5h1M14 7.5h1M9 11h1M14 11h1M9 14.5h1M14 14.5h1"/></svg>';
-const ICON_PULSE='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h4l2-7 4 14 2-7h6"/></svg>';
-const ICON_CALENDAR='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="5" width="16" height="15" rx="2"/><path d="M4 10h16M8 3v4M16 3v4"/></svg>';
+const OSA_VALUE=550;
+
+// Metabolic brand iconography is soft gradient shapes, not flat single-color line icons —
+// applying the same two-stop gradient (sky blue -> pink beige) as a stroke keeps these
+// legible at UI size while still reading as on-brand rather than a generic icon font.
+const ICON_DEFS='<defs><linearGradient id="ig" x1="0" y1="0" x2="1" y2="1">'
+  +'<stop offset="0" stop-color="#5FA8D3"/><stop offset="1" stop-color="#C98A78"/></linearGradient></defs>';
+const ICON_CLOCK=`<svg viewBox="0 0 24 24" fill="none" stroke="url(#ig)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${ICON_DEFS}<circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/></svg>`;
+const ICON_SHIELD=`<svg viewBox="0 0 24 24" fill="none" stroke="url(#ig)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${ICON_DEFS}<path d="M12 3.5l7 3v5.2c0 4.4-3 7.4-7 8.8-4-1.4-7-4.4-7-8.8V6.5l7-3z"/><path d="M9 12l2 2 4-4"/></svg>`;
+const ICON_DUMBBELL=`<svg viewBox="0 0 24 24" fill="none" stroke="url(#ig)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${ICON_DEFS}<path d="M4 9v6M6.5 7.5v9M17.5 7.5v9M20 9v6M6.5 12h11"/></svg>`;
+const ICON_TAG=`<svg viewBox="0 0 24 24" fill="none" stroke="url(#ig)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${ICON_DEFS}<path d="M3 12l9-9h7v7l-9 9-7-7z"/><circle cx="15" cy="8" r="1" fill="url(#ig)"/></svg>`;
+const ICON_HASH=`<svg viewBox="0 0 24 24" fill="none" stroke="url(#ig)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${ICON_DEFS}<path d="M5 9h14M5 15h14M10 4L8 20M16 4l-2 16"/></svg>`;
+const ICON_BUILDING=`<svg viewBox="0 0 24 24" fill="none" stroke="url(#ig)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${ICON_DEFS}<rect x="6" y="3.5" width="12" height="17" rx="1"/><path d="M9 7.5h1M14 7.5h1M9 11h1M14 11h1M9 14.5h1M14 14.5h1"/></svg>`;
+const ICON_PULSE=`<svg viewBox="0 0 24 24" fill="none" stroke="url(#ig)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${ICON_DEFS}<path d="M3 12h4l2-7 4 14 2-7h6"/></svg>`;
+const ICON_CALENDAR=`<svg viewBox="0 0 24 24" fill="none" stroke="url(#ig)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${ICON_DEFS}<rect x="4" y="5" width="16" height="15" rx="2"/><path d="M4 10h16M8 3v4M16 3v4"/></svg>`;
+const ICON_WAVE=`<svg viewBox="0 0 24 24" fill="none" stroke="url(#ig)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${ICON_DEFS}<path d="M3 12c1.5-4 3-4 4.5 0s3 4 4.5 0 3-4 4.5 0 3 4 4.5 0"/></svg>`;
 const $=s=>document.querySelector(s);
 const money=n=>n.toLocaleString('en-AE',{maximumFractionDigits:0});
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const nice=d=>{const[y,m,dd]=d.split('-');
   return dd+' '+['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][+m-1]+' '+y;};
-const CN={dm:'Diabetes',pre:'Pre-diabetes',oth:'Other metabolic risk'};
-const conds=()=>[...document.querySelectorAll('.cond:checked')].map(c=>c.value);
 const normMrn=s=>s.replace(/[^0-9]/g,'').replace(/^0+/,'');
 
 // ignore stale fetch responses if the user triggers another lookup before the first resolves
 let REQ=0;
-// last successfully-loaded patient, so VIEW/SESSION/condition toggles can re-render
-// instantly from cache instead of re-fetching and flashing a loading state (which was
-// collapsing the page and snapping scroll to the top on every toggle click)
+// last successfully-loaded patient, so VIEW/SESSION/PERIOD toggles can re-render instantly
+// from cache instead of re-fetching and flashing a loading state (which was collapsing the
+// page and snapping scroll to the top on every toggle click)
 let CURRENT=null;
 
 async function renderLanding(){
@@ -153,20 +160,24 @@ function renderResult(mrn,data){
   const bar=Math.max(denV+canRV,1);
   const span=Math.round((new Date(days[days.length-1])-new Date(days[0]))/864e5)+1;
 
-  const portalV=500;
   const copayV=Math.round(covV*0.05);
   const sessionV=SESSION_VALUE[SESSION];
-  const perksV=portalV+copayV+sessionV;
+  // portal monitoring and cash-service discounts are included but not priced; only the
+  // components with a real number attached feed the total
+  const perksV=copayV+sessionV+OSA_VALUE;
+
+  // per-year estimate: (completed-rejected + cancelled-rejected + copay waiver) per visit,
+  // annualised on an assumed ~5 visits/year care cadence — a talking point, not a quote
+  const perVisit=(denV+canRV+copayV)/Math.max(days.length,1);
+  const annualEstimate=Math.round(perVisit*5);
 
   const V = VIEW==='denied'
     ? {set:den, val:denV, cls:'h-denied', eyebrow:'Your insurer rejected the claim for',
        lead:`${den.length} test${den.length===1?'':'s'} you had between ${nice(days[0])} and ${nice(days[days.length-1])}. The insurer rejected the claim, so the cost falls to you.`,
-       whyHd:'Why the rejected tests matter',
        tableHd:`Completed, rejected <em>— ${nice(days[0])} to ${nice(days[days.length-1])}</em>`,
        foot:'Completed, rejected — payable by you'}
     : {set:canR, val:canRV, cls:'h-cancelled', eyebrow:'Rejected, so never carried out',
        lead:`${canR.length} test${canR.length===1?'':'s'} on the care plan were rejected and cancelled before they could be done. Nothing was charged — but the monitoring did not happen.`,
-       whyHd:'Why the cancelled tests matter',
        tableHd:`Cancelled, rejected <em>— ${nice(days[0])} to ${nice(days[days.length-1])}</em>`,
        foot:'Cancelled, rejected — never carried out'};
 
@@ -177,20 +188,17 @@ function renderResult(mrn,data){
              'Cancelled - rejected':'<span class="tag t-cancelled">Cancelled</span>',
              'Cancelled - other':'<span class="tag t-cancelled">Cancelled</span>'};
 
-  // indications, de-duplicated by service, filtered by selected conditions
-  const sel=conds(), seen={};
-  V.set.forEach(r=>{seen[r.s]=(seen[r.s]||0)+r.v;});
-  const why=Object.keys(seen).map(s=>({s,v:seen[s],i:IND[s]}))
-    .filter(x=>x.i && (sel.length===0 || x.i.c.some(c=>sel.includes(c))))
-    .sort((a,b)=>b.v-a.v);
+  const periodVal=PERIOD==='year'?annualEstimate:V.val;
+  const periodPerks=PERIOD==='year'?0:perksV; // the annual estimate already blends in the copay waiver
+  const basis=periodVal+periodPerks;
 
   out.innerHTML=`<div class="result">
     <dl class="ident">
-      <div><span class="icon-chip c1">${ICON_HASH}</span><dt>Record</dt><dd>${esc(mrn)}</dd></div>
-      <div><span class="icon-chip c2">${ICON_BUILDING}</span><dt>Insurer</dt><dd>${esc(payer)}</dd></div>
-      <div><span class="icon-chip c3">${ICON_PULSE}</span><dt>Visits</dt><dd>${days.length}</dd></div>
-      <div><span class="icon-chip c4">${ICON_CALENDAR}</span><dt>First</dt><dd>${nice(days[0])}</dd></div>
-      <div><span class="icon-chip c1">${ICON_CALENDAR}</span><dt>Last</dt><dd>${nice(days[days.length-1])}</dd></div>
+      <div><span class="icon-chip sm c1">${ICON_HASH}</span><dt>Record</dt><dd>${esc(mrn)}</dd></div>
+      <div><span class="icon-chip sm c2">${ICON_BUILDING}</span><dt>Insurer</dt><dd>${esc(payer)}</dd></div>
+      <div><span class="icon-chip sm c3">${ICON_PULSE}</span><dt>Visits</dt><dd>${days.length}</dd></div>
+      <div><span class="icon-chip sm c4">${ICON_CALENDAR}</span><dt>First</dt><dd>${nice(days[0])}</dd></div>
+      <div><span class="icon-chip sm c1">${ICON_CALENDAR}</span><dt>Last</dt><dd>${nice(days[days.length-1])}</dd></div>
     </dl>
 
     <div class="ledger">
@@ -224,30 +232,22 @@ function renderResult(mrn,data){
         :'Every test on the care plan was carried out.'} Switch views above, or lead the conversation on continuity of care rather than cost.</p></div>`}
 
     ${V.set.length?`
-    <h2 class="sec">${V.tableHd}</h2>
-    <div class="table-wrap"><table><thead><tr>
-      <th></th><th>Date</th><th>Test</th><th class="payer">Insurer</th>
-      <th>Outcome</th><th class="code">Reason</th><th style="text-align:right">Cash price</th>
-    </tr></thead><tbody>
-      ${shown.map(r=>`<tr class="${cls[r.c]}">
-        <td class="flag"></td><td class="date">${nice(r.d)}</td>
-        <td class="svc">${esc(r.s)}</td><td class="payer">${esc(r.p||'—')}</td>
-        <td>${tag[r.c]}</td><td class="code">${esc(r.k||'—')}</td>
-        <td class="val">${money(r.v)}</td></tr>`).join('')}
-    </tbody><tfoot><tr>
-      <td class="flag"></td><td colspan="5">${V.foot}</td>
-      <td class="val">AED ${money(V.val)}</td></tr></tfoot></table></div>
-
-    <div class="why">
-      <div class="hd"><h3>${V.whyHd}</h3>
-        <span class="n">${why.length} of ${Object.keys(seen).length} shown${sel.length?' · '+sel.map(c=>CN[c]).join(', '):''}</span></div>
-      ${why.length?`<ul>${why.map(x=>`<li>
-        <div class="bd"><div class="nm">${esc(x.s)}</div>
-          <div class="tx">${esc(x.i.t)}</div>
-          <div class="ct">Indicated in ${x.i.c.map(c=>CN[c]).join(' · ')}</div></div>
-        <div class="amt">${money(x.v)}</div></li>`).join('')}</ul>`
-      :`<div class="none">None of these tests are indicated for the conditions selected — widen the selection above</div>`}
-    </div>`:''}
+    <details class="tbl-collapse">
+      <summary><h2 class="sec" style="margin-top:0;border-bottom:none;padding-bottom:0">${V.tableHd}
+        <span class="chev">${V.set.length} test${V.set.length===1?'':'s'}</span></h2></summary>
+      <div class="table-wrap"><table><thead><tr>
+        <th></th><th>Date</th><th>Test</th><th class="payer">Insurer</th>
+        <th>Outcome</th><th class="code">Reason</th><th style="text-align:right">Cash price</th>
+      </tr></thead><tbody>
+        ${shown.map(r=>`<tr class="${cls[r.c]}">
+          <td class="flag"></td><td class="date">${nice(r.d)}</td>
+          <td class="svc">${esc(r.s)}</td><td class="payer">${esc(r.p||'—')}</td>
+          <td>${tag[r.c]}</td><td class="code">${esc(r.k||'—')}</td>
+          <td class="val">${money(r.v)}</td></tr>`).join('')}
+      </tbody><tfoot><tr>
+        <td class="flag"></td><td colspan="5">${V.foot}</td>
+        <td class="val">AED ${money(V.val)}</td></tr></tfoot></table></div>
+    </details>`:''}
 
     <div class="case">
       <div class="hd">What membership would have changed</div>
@@ -260,37 +260,47 @@ function renderResult(mrn,data){
             </span>
           </div>
           <div class="perks-grid">
-            <div class="perk-tile"><span class="perk-icon c1">${ICON_CLOCK}</span>
+            <div class="perk-tile"><span class="icon-chip sm c1">${ICON_CLOCK}</span>
               <div class="perk-lbl">1 month portal monitoring</div>
-              <div class="perk-val">AED ${money(portalV)}</div></div>
-            <div class="perk-tile"><span class="perk-icon c2">${ICON_SHIELD}</span>
+              <div class="perk-val">Included</div></div>
+            <div class="perk-tile"><span class="icon-chip sm c2">${ICON_SHIELD}</span>
               <div class="perk-lbl">Copayment waived (5% of your insurer-covered testing)</div>
               <div class="perk-val">AED ${money(copayV)}</div></div>
-            <div class="perk-tile"><span class="perk-icon c3">${ICON_DUMBBELL}</span>
+            <div class="perk-tile"><span class="icon-chip sm c3">${ICON_DUMBBELL}</span>
               <div class="perk-lbl">${SESSION_LABEL[SESSION]}</div>
               <div class="perk-val">AED ${money(sessionV)}</div></div>
-            <div class="perk-tile tbd"><span class="perk-icon c4">${ICON_TAG}</span>
+            <div class="perk-tile"><span class="icon-chip sm c1">${ICON_WAVE}</span>
+              <div class="perk-lbl">OSA ultrasound (self-pay rate)</div>
+              <div class="perk-val">AED ${money(OSA_VALUE)}</div></div>
+            <div class="perk-tile tbd"><span class="icon-chip sm c4">${ICON_TAG}</span>
               <div class="perk-lbl">Discounts on select cash services</div>
               <div class="perk-val">Not yet defined</div></div>
           </div>
           <div class="perks-total"><span>Membership perks, this window</span><span>AED ${money(perksV)}</span></div>
         </div>
 
+        <div class="perks-hd" style="margin-top:2px">Basis for the numbers below
+          <span class="seg" id="periodSeg">
+            <button type="button" data-p="window" class="${PERIOD==='window'?'active':''}">This window</button>
+            <button type="button" data-p="year" class="${PERIOD==='year'?'active':''}">Per year (est.)</button>
+          </span>
+        </div>
+
         <div class="compare">
-          <div><div class="lbl">${VIEW==='denied'?'Paid out of pocket':'Value of care missed'}</div>
-            <div class="num ${VIEW==='denied'?'neg':''}">${money(V.val)}</div>
-            <div class="note">${span} days, ${nice(days[0])} – ${nice(days[days.length-1])}</div></div>
+          <div><div class="lbl">${PERIOD==='year'?'Estimated per year':(VIEW==='denied'?'Paid out of pocket':'Value of care missed')}</div>
+            <div class="num ${PERIOD==='window'&&VIEW==='denied'?'neg':''}">${money(periodVal)}</div>
+            <div class="note">${PERIOD==='year'?'Completed+cancelled rejected & copay, per visit &times; 5':`${span} days, ${nice(days[0])} – ${nice(days[days.length-1])}`}</div></div>
           <div><div class="lbl">Plus membership perks</div>
-            <div class="num">${money(perksV)}</div>
-            <div class="note">Portal, copay waiver, ${SESSION} sessions</div></div>
+            <div class="num">${money(periodPerks)}</div>
+            <div class="note">${PERIOD==='year'?'Already folded into the per-year estimate':`Portal, copay waiver, ${SESSION} sessions, OSA`}</div></div>
           <div><div class="lbl">Membership, one year</div>
             <div class="num">${money(fee)}</div>
             <div class="note">Every test listed included, no claim to file</div></div>
-          <div><div class="lbl">${(V.val+perksV)>fee?'Ahead by':'Difference'}</div>
-            <div class="num ${(V.val+perksV)>fee?'pos':''}">${money(Math.abs(V.val+perksV-fee))}</div>
-            <div class="note">${(V.val+perksV)>fee
-              ?'Covered in '+span+' days, with the rest of the year still to run'
-              :'Membership costs more than this window shows — annualise it, or lead on the care plan'}</div></div>
+          <div><div class="lbl">${basis>fee?'Ahead by':'Difference'}</div>
+            <div class="num ${basis>fee?'pos':''}">${money(Math.abs(basis-fee))}</div>
+            <div class="note">${basis>fee
+              ?(PERIOD==='year'?'Projected across a full year of care':'Covered in '+span+' days, with the rest of the year still to run')
+              :'Membership costs more than this basis shows — widen the window, or lead on the care plan'}</div></div>
         </div>
 
         <p class="say">Between ${nice(days[0])} and ${nice(days[days.length-1])} the insurer rejected
@@ -329,6 +339,10 @@ function renderResult(mrn,data){
   const seg=$('#sessionSeg');
   if(seg) seg.querySelectorAll('button').forEach(b=>b.addEventListener('click',()=>{
     SESSION=b.dataset.s;renderResult(mrn,data);}));
+
+  const pseg=$('#periodSeg');
+  if(pseg) pseg.querySelectorAll('button').forEach(b=>b.addEventListener('click',()=>{
+    PERIOD=b.dataset.p;renderResult(mrn,data);}));
 }
 
 $('#go').addEventListener('click',lookup);
@@ -338,8 +352,5 @@ $('#fee').addEventListener('change',()=>{
   if(CURRENT) renderResult(CURRENT.mrn,CURRENT.data);
   else renderLanding();
 });
-document.querySelectorAll('.cond').forEach(c=>c.addEventListener('change',()=>{
-  if(CURRENT) renderResult(CURRENT.mrn,CURRENT.data);
-}));
 
 renderLanding();
