@@ -4,8 +4,10 @@ from datetime import date, timedelta
 from functools import wraps
 from pathlib import Path
 
-from flask import Flask, g, jsonify, redirect, render_template, request, session, url_for
+from flask import Flask, abort, g, jsonify, redirect, render_template, request, session, url_for
 from werkzeug.security import check_password_hash
+
+import build_db
 
 DB_PATH = Path(__file__).parent / "data" / "coverage.db"
 DATE_MIN, DATE_MAX = "2026-04-06", "2026-08-31"
@@ -262,6 +264,27 @@ def api_outreach():
     results.sort(key=lambda x: x["value"], reverse=True)
     log_access("(bulk)", f"outreach-list:{len(results)}")
     return jsonify({"days": days, "today": today.isoformat(), "results": results})
+
+
+@app.route("/admin/upload-db", methods=["POST"])
+def admin_upload_db():
+    # Temporary, single-use: refreshes items/covered_daily/summary from a new pipeline
+    # run without wiping users/access_log/outreach tables. Remove after each use.
+    token = os.environ.get("ADMIN_TOKEN")
+    if not token or request.headers.get("X-Admin-Token") != token:
+        abort(404)
+    tmp = Path("/tmp/admin-upload")
+    tmp.mkdir(exist_ok=True)
+    paths = {}
+    for key in ("summary", "items", "daily"):
+        f = request.files.get(key)
+        if not f:
+            return jsonify({"error": f"missing file field '{key}'"}), 400
+        p = tmp / f"{key}.csv"
+        f.save(p)
+        paths[key] = p
+    build_db.build(paths["summary"], paths["items"], paths["daily"])
+    return jsonify({"ok": True})
 
 
 if __name__ == "__main__":
