@@ -52,7 +52,7 @@ async function renderLanding(){
   $('#out').innerHTML=`<div class="landing">
     <div class="msg" style="text-align:left;padding:18px 20px">Enter a record number above to see one patient's coverage history.</div>
     <div class="case">
-      <div class="hd">Cohort exposure at AED ${money(fee)} membership &middot; ${total} patients &middot; 6 Apr&ndash;31 Jul 2026</div>
+      <div class="hd">Cohort exposure at AED ${money(fee)} membership &middot; ${total} patients &middot; 6 Apr&ndash;31 Aug 2026</div>
       <div class="bd">
         <div class="compare">
           <div><div class="lbl">Have at least one denial</div><div class="num">${hasDenial}</div>
