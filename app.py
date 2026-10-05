@@ -4,7 +4,7 @@ from datetime import date, timedelta
 from functools import wraps
 from pathlib import Path
 
-from flask import Flask, abort, g, jsonify, redirect, render_template, request, session, url_for
+from flask import Flask, g, jsonify, redirect, render_template, request, session, url_for
 from werkzeug.security import check_password_hash
 
 DB_PATH = Path(__file__).parent / "data" / "coverage.db"
@@ -262,48 +262,6 @@ def api_outreach():
     results.sort(key=lambda x: x["value"], reverse=True)
     log_access("(bulk)", f"outreach-list:{len(results)}")
     return jsonify({"days": days, "today": today.isoformat(), "results": results})
-
-
-OUTREACH_TABLES = ("appointments", "contacts", "diagnoses")
-
-
-@app.route("/admin/upload-outreach", methods=["POST"])
-def admin_upload_outreach():
-    # Temporary, single-use: swaps in outreach tables pre-built locally by build_outreach.py.
-    # The retention workbook is too large to parse within the server's memory limit.
-    token = os.environ.get("ADMIN_TOKEN")
-    if not token or request.headers.get("X-Admin-Token") != token:
-        abort(404)
-    f = request.files.get("db")
-    if not f:
-        return jsonify({"error": "missing file field 'db'"}), 400
-    src = Path("/tmp/outreach_upload.db")
-    f.save(src)
-    con = sqlite3.connect(DB_PATH, isolation_level=None)
-    try:
-        con.execute("ATTACH DATABASE ? AS src", (str(src),))
-        schema = con.execute(
-            "SELECT type, name, sql FROM src.sqlite_master WHERE tbl_name IN (?,?,?) AND sql IS NOT NULL",
-            OUTREACH_TABLES,
-        ).fetchall()
-        if {name for kind, name, _ in schema if kind == "table"} != set(OUTREACH_TABLES):
-            return jsonify({"error": "upload must contain appointments, contacts and diagnoses"}), 400
-        con.execute("BEGIN")
-        for t in OUTREACH_TABLES:
-            con.execute(f"DROP TABLE IF EXISTS main.{t}")
-        for _, _, sql in sorted(schema, key=lambda r: r[0] != "table"):
-            con.execute(sql)
-        for t in OUTREACH_TABLES:
-            con.execute(f"INSERT INTO main.{t} SELECT * FROM src.{t}")
-        con.execute("COMMIT")
-        counts = {t: con.execute(f"SELECT COUNT(*) FROM main.{t}").fetchone()[0] for t in OUTREACH_TABLES}
-    except Exception:
-        if con.in_transaction:
-            con.execute("ROLLBACK")
-        raise
-    finally:
-        con.close()
-    return jsonify({"ok": True, "counts": counts})
 
 
 if __name__ == "__main__":
