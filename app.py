@@ -4,11 +4,13 @@ from datetime import date, timedelta
 from functools import wraps
 from pathlib import Path
 
-from flask import Flask, g, jsonify, redirect, render_template, request, session, url_for
+from flask import Flask, abort, g, jsonify, redirect, render_template, request, session, url_for
 from werkzeug.security import check_password_hash
 
+import build_db
+
 DB_PATH = Path(__file__).parent / "data" / "coverage.db"
-DATE_MIN, DATE_MAX = "2026-04-06", "2026-08-31"
+DATE_MIN, DATE_MAX = "2026-04-06", "2026-09-30"
 
 # same clustering rule as static/app.js: a service re-billed under a different category
 # within 2 days is one clinical event, not several — a real Denied beats an Unbilled
@@ -262,6 +264,30 @@ def api_outreach():
     results.sort(key=lambda x: x["value"], reverse=True)
     log_access("(bulk)", f"outreach-list:{len(results)}")
     return jsonify({"days": days, "today": today.isoformat(), "results": results})
+
+
+@app.route("/admin/upload-db", methods=["POST"])
+def admin_upload_db():
+    # Temporary, single-use: refreshes items/covered_daily/summary. Remove after use.
+    token = os.environ.get("ADMIN_TOKEN")
+    if not token or request.headers.get("X-Admin-Token") != token:
+        abort(404)
+    tmp = Path("/tmp/admin-upload")
+    tmp.mkdir(exist_ok=True)
+    paths = {}
+    for key in ("summary", "items", "daily"):
+        f = request.files.get(key)
+        if not f:
+            return jsonify({"error": f"missing file field '{key}'"}), 400
+        p = tmp / f"{key}.csv"
+        f.save(p)
+        paths[key] = p
+    build_db.build(paths["summary"], paths["items"], paths["daily"])
+    con = sqlite3.connect(DB_PATH)
+    counts = {t: con.execute(f"SELECT COUNT(*) FROM {t}").fetchone()[0]
+              for t in ("items", "covered_daily", "summary", "users")}
+    con.close()
+    return jsonify({"ok": True, "counts": counts})
 
 
 if __name__ == "__main__":
